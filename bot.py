@@ -526,10 +526,6 @@ def main():
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("bekor", cancel))
-    app.add_handler(MessageHandler(filters.Regex("^🔔 Bugun$"), today_summary))
-    app.add_handler(MessageHandler(filters.Regex("^📦 Jarayonlar$"), processes_menu))
-    app.add_handler(MessageHandler(filters.Regex("^💰 Moliya$"), finance_menu))
-    app.add_handler(MessageHandler(filters.Regex("^🧪 Retseptlar$"), recipes_menu))
     app.add_handler(MessageHandler(filters.Regex(r"^/hisobla_\S+"), recipe_calc))
 
     process_conv = ConversationHandler(
@@ -580,6 +576,24 @@ def main():
         fallbacks=[CommandHandler("bekor", cancel)],
     )
     app.add_handler(stage_update_conv)
+
+    # Menu buttons matched loosely (contains keyword, case-insensitive) so that
+    # emoji-encoding differences between phones/Telegram versions never break
+    # the match. Slash commands are provided as a 100%-reliable fallback.
+    # Registered AFTER the conversation handlers above so that if a conversation
+    # is mid-flow (e.g. asking for a title), its own handler gets first refusal
+    # on the incoming text instead of these keyword matchers.
+    app.add_handler(MessageHandler(filters.Regex(r"(?i)bugun"), today_summary))
+    app.add_handler(CommandHandler("bugun", today_summary))
+
+    app.add_handler(MessageHandler(filters.Regex(r"(?i)jarayonlar"), processes_menu))
+    app.add_handler(CommandHandler("jarayonlar", processes_menu))
+
+    app.add_handler(MessageHandler(filters.Regex(r"(?i)moliya"), finance_menu))
+    app.add_handler(CommandHandler("moliya", finance_menu))
+
+    app.add_handler(MessageHandler(filters.Regex(r"(?i)retseptlar"), recipes_menu))
+    app.add_handler(CommandHandler("retseptlar", recipes_menu))
 
     app.add_handler(CallbackQueryHandler(process_update_stage_prompt, pattern="^pupdate:"))
     app.add_handler(CallbackQueryHandler(process_toggle_done, pattern="^pdone:"))
